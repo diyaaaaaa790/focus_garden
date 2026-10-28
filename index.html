@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Focus Garden · Pomodoro + Study Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:opsz,wght@9..144,400;9..144,600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#171528;--bg2:#2a2147;--surface:#242040;--line:#3b3566;--text:#efeaf9;--muted:#a79fc9;--focus:#ffb08a;--brk:#8fe0c0;--long:#a3b6ff;--accent:var(--focus);--ink:#171528;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#fdf3ea;--bg2:#f6dfd8;--surface:#fffaf6;--line:#e6d2c7;--text:#2b2540;--muted:#7b7192;--focus:#e0703d;--brk:#2f9e78;--long:#4a5fd0;--ink:#fffaf6;color-scheme:light}}
+:root[data-theme="light"]{--bg:#fdf3ea;--bg2:#f6dfd8;--surface:#fffaf6;--line:#e6d2c7;--text:#2b2540;--muted:#7b7192;--focus:#e0703d;--brk:#2f9e78;--long:#4a5fd0;--ink:#fffaf6;color-scheme:light}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body[data-mode="short"]{--accent:var(--brk)}
+body[data-mode="long"]{--accent:var(--long)}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font-family:"DM Sans",system-ui,sans-serif;color:var(--text);background:radial-gradient(90% 60% at 80% -10%,color-mix(in srgb,var(--accent) 22%,transparent),transparent),linear-gradient(180deg,var(--bg),var(--bg2)) fixed;transition:background .6s}
+main{max-width:1020px;margin:0 auto;padding:28px 20px 56px}
+header{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:28px}
+h1{font:600 clamp(2rem,5vw,3rem)/1.05 Fraunces,Georgia,serif;margin:0;letter-spacing:-.02em}
+header p{margin:6px 0 0;color:var(--muted);max-width:44ch}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.ghost{background:none;border:1px solid var(--line);border-radius:99px;padding:8px 16px;color:var(--muted)}
+.ghost:hover{color:var(--text);border-color:var(--accent)}
+.grid{display:grid;grid-template-columns:1.05fr 1fr;gap:28px;align-items:start}
+@media(max-width:820px){.grid{grid-template-columns:1fr}}
+.panel{background:color-mix(in srgb,var(--surface) 82%,transparent);border:1px solid var(--line);border-radius:28px;padding:26px}
+.tabs{display:flex;gap:6px;background:var(--bg);border-radius:99px;padding:5px;width:max-content;margin:0 auto 18px;max-width:100%}
+.tabs button{border:0;background:none;padding:8px 16px;border-radius:99px;color:var(--muted);white-space:nowrap}
+.tabs button[aria-selected="true"]{background:var(--accent);color:var(--ink);font-weight:700}
+.dial{position:relative;width:min(100%,320px);margin:0 auto}
+.dial svg{width:100%;display:block;overflow:visible}
+#track{fill:none;stroke:var(--line);stroke-width:6}
+#prog{fill:none;stroke:var(--accent);stroke-width:6;stroke-linecap:round;transform:rotate(-90deg);transform-origin:150px 150px;transition:stroke .6s}
+#sun{fill:var(--accent);filter:drop-shadow(0 0 10px var(--accent));transition:fill .6s}
+.read{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 52px}
+#time{font:400 clamp(3.2rem,12vw,4.4rem)/1 Fraunces,Georgia,serif;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+#now{margin-top:10px;color:var(--muted);font-size:.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.controls{display:flex;justify-content:center;gap:12px;margin-top:22px}
+.go{background:var(--accent);color:var(--ink);border:0;border-radius:99px;padding:13px 38px;font-weight:700;font-size:1.05rem;transition:transform .15s}
+.go:active{transform:scale(.96)}
+#status{text-align:center;color:var(--muted);margin:14px 0 0;min-height:1.4em;font-size:.92rem}
+details{margin-top:16px;color:var(--muted);font-size:.9rem}
+summary{cursor:pointer;text-align:center}
+.set{display:flex;gap:14px;justify-content:center;margin-top:12px;flex-wrap:wrap}
+.set label{display:flex;flex-direction:column;gap:4px;font-size:.8rem}
+.set input{width:78px;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:7px 10px}
+h2{font:600 1.35rem/1.2 Fraunces,Georgia,serif;margin:0 0 14px}
+.add{display:flex;gap:8px;margin-bottom:14px}
+.add input{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:11px 14px;min-width:0}
+#title{flex:1}
+#est{width:64px}
+.add button{background:var(--text);color:var(--bg);border:0;border-radius:14px;padding:0 16px;font-weight:700}
+ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+li{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--line);border-radius:16px;background:var(--bg);cursor:pointer;transition:border-color .2s}
+li.active{border-color:var(--accent);box-shadow:inset 3px 0 0 var(--accent)}
+li.done .t{text-decoration:line-through;opacity:.5}
+.t{flex:1;min-width:0;overflow-wrap:anywhere}
+.chk{width:20px;height:20px;border-radius:50%;border:2px solid var(--muted);background:none;padding:0;flex:none}
+li.done .chk{background:var(--brk);border-color:var(--brk)}
+.dots{display:flex;gap:4px}
+.dots i{width:9px;height:9px;border-radius:50%;border:1.5px solid var(--muted)}
+.dots i.f{background:var(--accent);border-color:var(--accent)}
+.x{background:none;border:0;color:var(--muted);font-size:1.2rem;padding:0 4px}
+.empty{color:var(--muted);padding:6px 2px}
+.stats{display:flex;gap:22px;margin-top:18px;flex-wrap:wrap}
+.stats div{display:flex;flex-direction:column}
+.stats b{font:600 1.7rem Fraunces,Georgia,serif}
+.stats span{color:var(--muted);font-size:.82rem}
+.garden{margin-top:28px;position:relative;overflow:hidden}
+.garden h2{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.garden h2 small{font:400 .9rem "DM Sans",sans-serif;color:var(--muted)}
+#plot{display:flex;align-items:flex-end;gap:6px;min-height:110px;padding-bottom:6px;border-bottom:2px solid var(--line);overflow-x:auto}
+#plot svg{width:26px;height:96px;flex:none;transform-origin:bottom center}
+#plot svg.new{animation:grow .9s cubic-bezier(.2,1.4,.4,1)}
+@keyframes grow{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+@media(prefers-reduced-motion:reduce){#plot svg.new{animation:none}*{transition:none!important}}
+</style>
+</head>
+<body data-mode="focus">
+<main>
+<header>
+  <div>
+    <h1>Focus Garden</h1>
+    <p>Study in focused sprints. Every session you finish plants something in today’s garden.</p>
+  </div>
+  <button class="ghost" id="theme" type="button">Dawn</button>
+</header>
+
+<div class="grid">
+  <section class="panel" aria-label="Timer">
+    <div class="tabs" role="tablist">
+      <button role="tab" data-m="focus" aria-selected="true">Focus</button>
+      <button role="tab" data-m="short" aria-selected="false">Short break</button>
+      <button role="tab" data-m="long" aria-selected="false">Long break</button>
+    </div>
+    <div class="dial">
+      <svg viewBox="0 0 300 300" aria-hidden="true">
+        <circle id="track" cx="150" cy="150" r="130"/>
+        <circle id="prog" cx="150" cy="150" r="130"/>
+        <circle id="sun" cx="150" cy="20" r="9"/>
+      </svg>
+      <div class="read"><div id="time" role="timer">25:00</div><div id="now">No task selected</div></div>
+    </div>
+    <div class="controls">
+      <button class="go" id="go" type="button">Start</button>
+      <button class="ghost" id="reset" type="button">Reset</button>
+    </div>
+    <p id="status">Pick a task, then press Start. Space also works.</p>
+    <details>
+      <summary>Set your own lengths</summary>
+      <div class="set">
+        <label>Focus (min)<input type="number" id="d-focus" min="1" max="90"></label>
+        <label>Short break<input type="number" id="d-short" min="1" max="30"></label>
+        <label>Long break<input type="number" id="d-long" min="1" max="60"></label>
+      </div>
+    </details>
+  </section>
+
+  <section class="panel" aria-label="Study planner">
+    <h2>Today’s study plan</h2>
+    <div class="add">
+      <input id="title" placeholder="What will you study? e.g. DAA – Dijkstra" maxlength="80">
+      <input id="est" type="number" min="1" max="8" value="2" title="Planned sessions" aria-label="Planned sessions">
+      <button id="addbtn" type="button">Add</button>
+    </div>
+    <ul id="list"></ul>
+    <div class="stats">
+      <div><b id="s-n">0</b><span>sessions today</span></div>
+      <div><b id="s-m">0</b><span>focused minutes</span></div>
+      <div><b id="s-d">0</b><span>day streak</span></div>
+    </div>
+  </section>
+</div>
+
+<section class="panel garden" aria-label="Garden">
+  <h2>Today’s garden <small id="gtxt"></small></h2>
+  <div id="plot"></div>
+</section>
+</main>
+
+<script>
+const $=s=>document.querySelector(s);
+const KEY="focus-garden-v1";
+let S={tasks:[],sessions:{},minutes:{},active:null,dur:{focus:25,short:5,long:15},cycle:0,theme:null};
+try{const r=localStorage.getItem(KEY);if(r)S=Object.assign(S,JSON.parse(r));}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const today=(o=0)=>{const d=new Date();d.setDate(d.getDate()-o);return d.toLocaleDateString("en-CA")};
+const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const R=2*Math.PI*130;
+let mode="focus",remaining=S.dur.focus*60,running=false,endAt=0,timer=null,justPlanted=false;
+const total=()=>S.dur[mode]*60;
+const fmt=s=>String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");
+
+function drawTimer(){
+  const p=1-remaining/total();
+  $("#prog").style.strokeDasharray=R;
+  $("#prog").style.strokeDashoffset=R*(1-p);
+  const a=(-90+360*p)*Math.PI/180;
+  $("#sun").setAttribute("cx",150+130*Math.cos(a));
+  $("#sun").setAttribute("cy",150+130*Math.sin(a));
+  $("#time").textContent=fmt(remaining);
+  document.title=(running?fmt(remaining)+" · ":"")+"Focus Garden";
+  $("#go").textContent=running?"Pause":(remaining<total()?"Resume":"Start");
+}
+function stop(){running=false;clearInterval(timer)}
+function tick(){
+  remaining=Math.max(0,Math.round((endAt-Date.now())/1000));
+  drawTimer();
+  if(remaining<=0)complete();
+}
+function toggle(){
+  if(running){stop();$("#status").textContent="Paused. Take a breath, then resume."}
+  else{endAt=Date.now()+remaining*1000;running=true;timer=setInterval(tick,250);
+    $("#status").textContent=mode==="focus"?"Stay with one task. Phone away.":"Break time. Stretch, water, eyes off the screen."}
+  drawTimer();
+}
+function setMode(m){
+  stop();mode=m;remaining=total();document.body.dataset.mode=m;
+  document.querySelectorAll(".tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.m===m));
+  drawTimer();
+}
+function beep(){
+  try{const c=new (window.AudioContext||window.webkitAudioContext)();
+    [0,.25,.5].forEach((t,i)=>{const o=c.createOscillator(),g=c.createGain();o.frequency.value=520+i*130;
+      g.gain.setValueAtTime(.15,c.currentTime+t);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+t+.22);
+      o.connect(g);g.connect(c.destination);o.start(c.currentTime+t);o.stop(c.currentTime+t+.25)});}catch(e){}
+}
+function complete(){
+  stop();beep();
+  let next="focus";
+  if(mode==="focus"){
+    const d=today();
+    S.sessions[d]=(S.sessions[d]||0)+1;
+    S.minutes[d]=(S.minutes[d]||0)+S.dur.focus;
+    S.cycle++;
+    const t=S.tasks.find(x=>x.id===S.active);
+    if(t)t.done=Math.min(t.done+1,99);
+    justPlanted=true;save();renderAll();
+    next=S.cycle%4===0?"long":"short";
+    $("#status").textContent=next==="long"?"Four sessions done. Take a long break.":"Session complete. A sprout was planted.";
+  }else $("#status").textContent="Break over. Ready for the next session?";
+  setMode(next);
+}
+
+function streak(){
+  let n=0,o=S.sessions[today()]?0:1;
+  while(S.sessions[today(o)]){n++;o++}
+  return n;
+}
+function plant(i,isNew){
+  const hues=["#7fd6a8","#9be3c3","#b4e08a","#6fc7b6"];
+  const h=34+((i*37)%46),c=hues[i%4],top=96-h;
+  const flower=(i+1)%4===0;
+  const bloom=flower?`<circle cx="13" cy="${top}" r="6" fill="var(--accent)"/><circle cx="13" cy="${top}" r="2.5" fill="var(--ink)"/>`
+    :`<ellipse cx="9" cy="${top+8}" rx="6" ry="3" fill="${c}" transform="rotate(-30 9 ${top+8})"/><ellipse cx="17" cy="${top+3}" rx="6" ry="3" fill="${c}" transform="rotate(30 17 ${top+3})"/>`;
+  return `<svg viewBox="0 0 26 96" class="${isNew?"new":""}" aria-hidden="true"><path d="M13 96 V${top}" stroke="${c}" stroke-width="2.5" fill="none" stroke-linecap="round"/>${bloom}</svg>`;
+}
+function renderGarden(){
+  const n=S.sessions[today()]||0;
+  let html="";
+  for(let i=0;i<n;i++)html+=plant(i,justPlanted&&i===n-1);
+  $("#plot").innerHTML=html||'<span class="empty">Finish a focus session to plant your first sprout.</span>';
+  $("#gtxt").textContent=n?`${n} planted · a flower blooms every 4th session`:"";
+  justPlanted=false;
+}
+function renderTasks(){
+  $("#list").innerHTML=S.tasks.length?S.tasks.map(t=>{
+    let dots="";for(let i=0;i<t.est;i++)dots+=`<i class="${i<t.done?"f":""}"></i>`;
+    const isDone=t.done>=t.est||t.fin;
+    return `<li data-id="${t.id}" class="${t.id===S.active?"active":""} ${isDone?"done":""}">
+      <button class="chk" data-act="fin" aria-label="Mark done"></button>
+      <span class="t">${esc(t.title)}</span><span class="dots">${dots}</span>
+      <button class="x" data-act="del" aria-label="Delete task">×</button></li>`}).join("")
+    :'<li class="empty" style="cursor:default;border:0;background:none">No tasks yet. Add what you want to finish today.</li>';
+  const a=S.tasks.find(t=>t.id===S.active);
+  $("#now").textContent=a?a.title:"No task selected";
+}
+function renderStats(){
+  const d=today();
+  $("#s-n").textContent=S.sessions[d]||0;
+  $("#s-m").textContent=S.minutes[d]||0;
+  $("#s-d").textContent=streak();
+}
+function renderAll(){renderTasks();renderStats();renderGarden()}
+
+function addTask(){
+  const v=$("#title").value.trim();if(!v){$("#title").focus();return}
+  const est=Math.min(8,Math.max(1,parseInt($("#est").value)||1));
+  const t={id:Date.now(),title:v,est,done:0,fin:false};
+  S.tasks.push(t);if(!S.active)S.active=t.id;
+  $("#title").value="";save();renderAll();
+}
+$("#addbtn").onclick=addTask;
+$("#title").onkeydown=e=>{if(e.key==="Enter")addTask()};
+$("#list").onclick=e=>{
+  const li=e.target.closest("li[data-id]");if(!li)return;
+  const id=+li.dataset.id,act=e.target.dataset.act;
+  if(act==="del"){S.tasks=S.tasks.filter(t=>t.id!==id);if(S.active===id)S.active=null}
+  else if(act==="fin"){const t=S.tasks.find(t=>t.id===id);t.fin=!t.fin}
+  else S.active=id;
+  save();renderAll();
+};
+document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>setMode(b.dataset.m));
+$("#go").onclick=toggle;
+$("#reset").onclick=()=>{stop();remaining=total();$("#status").textContent="Timer reset.";drawTimer()};
+document.addEventListener("keydown",e=>{
+  if(e.code==="Space"&&!/INPUT|BUTTON|SUMMARY/.test(document.activeElement.tagName)){e.preventDefault();toggle()}
+});
+["focus","short","long"].forEach(k=>{
+  const el=$("#d-"+k);el.value=S.dur[k];
+  el.onchange=()=>{const v=Math.min(+el.max,Math.max(1,parseInt(el.value)||S.dur[k]));el.value=v;S.dur[k]=v;save();if(!running&&k===mode){remaining=total();drawTimer()}};
+});
+function applyTheme(){
+  if(S.theme)document.documentElement.dataset.theme=S.theme;
+  const light=S.theme?S.theme==="light":matchMedia("(prefers-color-scheme: light)").matches;
+  $("#theme").textContent=light?"Dusk":"Dawn";
+}
+$("#theme").onclick=()=>{
+  const light=S.theme?S.theme==="light":matchMedia("(prefers-color-scheme: light)").matches;
+  S.theme=light?"dark":"light";save();applyTheme();
+};
+applyTheme();renderAll();drawTimer();
+</script>
+</body>
+</html>
